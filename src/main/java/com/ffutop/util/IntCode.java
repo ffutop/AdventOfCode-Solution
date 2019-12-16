@@ -39,7 +39,7 @@ public class IntCode {
                     if (input.size() == 0) {
                         return false;
                     }
-                    memorys.put(par(1), Long.valueOf(input.poll()));
+                    memorys.put(par(1), input.poll());
                     break;
                 case 4:
                     output.add((memorys.getOrDefault(par(1), 0L)));
@@ -57,10 +57,10 @@ public class IntCode {
                     }
                     break;
                 case 7:
-                    memorys.put(par(3), memorys.getOrDefault(par(1), 0L) < memorys.getOrDefault(par(2), 0L) ? 1L : 0L);
+                    memorys.put(par(3), memorys.getOrDefault(par(1), 0L).longValue() < memorys.getOrDefault(par(2), 0L).longValue() ? 1L : 0L);
                     break;
                 case 8:
-                    memorys.put(par(3), memorys.getOrDefault(par(1), 0L) == memorys.getOrDefault(par(2), 0L) ? 1L : 0L);
+                    memorys.put(par(3), memorys.getOrDefault(par(1), 0L).longValue() == memorys.getOrDefault(par(2), 0L).longValue() ? 1L : 0L);
                     break;
                 case 9:
                     relativeBase += memorys.getOrDefault(par(1), 0L);
