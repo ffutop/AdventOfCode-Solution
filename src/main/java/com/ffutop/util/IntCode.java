@@ -5,12 +5,10 @@ import java.util.Queue;
 
 public class IntCode {
 
+    private static final int[] cursorAddon = new int[] {0,4,4,2,2,3,3,4,4,2};
     private HashMap<Integer, Long> memorys;
     private long relativeBase = 0;
-    private int[] cursorAddon = new int[] {0,4,4,2,2,3,3,4,4,2};
     int cursor = 0;
-
-    long x = 0, y = 0, z = 0;
     String instruction;
 
     public void init(String data) {
@@ -22,6 +20,12 @@ public class IntCode {
         for (int index=0;index<length;index++) {
             memorys.put(index, Long.valueOf(tokens[index]));
         }
+    }
+
+    public void init(HashMap<Integer, Long> memorys) {
+        this.memorys = new HashMap<Integer, Long>(memorys);
+        cursor = 0;
+        relativeBase = 0;
     }
 
     public boolean solve(Queue<Long> input, Queue<Long> output) {
