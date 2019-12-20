@@ -1,16 +1,12 @@
 package com.ffutop.aoc;
 
-import com.ffutop.util.IntCode;
 import com.ffutop.util.ReaderUtil;
 
-import javax.swing.plaf.IconUIResource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
 
 public class Day6 {
-
-    private static int[] vals;
 
     public static void main(String[] args) throws IOException {
         Part1 part1 = new Part1();
