@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author fangfeng
@@ -53,5 +54,29 @@ public class BasicDay {
             longList.add(Long.parseLong(obj));
         }
         return longList;
+    }
+
+    protected <T> List<T> readLists(Function<String, T> function) {
+        String fileName = this.getClass().getSimpleName().toLowerCase() + ".in";
+        List<T> list = new ArrayList<>();
+        BufferedReader br = null;
+        try {
+            br = ReaderUtil.getBufferedReader(fileName);
+            String line ;
+            while ((line = br.readLine()) != null) {
+                list.add(function.apply(line));
+            }
+        } catch (IOException iox) {
+            System.out.println("read lists failed");
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return list;
     }
 }
