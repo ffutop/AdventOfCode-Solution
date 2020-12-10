@@ -1,7 +1,5 @@
 package com.ffutop.aoc.y2020;
 
-import sun.nio.cs.ext.MacHebrew;
-
 import java.util.*;
 
 public class Day9 extends BasicDay {
@@ -15,7 +13,7 @@ public class Day9 extends BasicDay {
     }
 
     private long solve1() {
-        List<Long> list = readLongList();
+        List<Long> list = readLists(s -> Long.valueOf(s));
         Queue<Long> queue = new LinkedList<>();
         Set<Long> values = new HashSet<>();
         int len = list.size();
@@ -46,7 +44,7 @@ public class Day9 extends BasicDay {
     }
 
     private long solve2(long target) {
-        List<Long> list = readLongList();
+        List<Long> list = readLists(s -> Long.valueOf(s));
         long sum = 0;
         int leftCursor = 0, rightCursor = 0;
         int len = list.size();

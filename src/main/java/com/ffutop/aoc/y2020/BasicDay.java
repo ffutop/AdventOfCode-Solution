@@ -38,24 +38,6 @@ public class BasicDay {
         return list;
     }
 
-    protected List<Integer> readIntegerList() {
-        List<Integer> intList = new ArrayList<>();
-        List<String> list = readLists();
-        for (String obj : list) {
-            intList.add(Integer.parseInt(obj));
-        }
-        return intList;
-    }
-
-    protected List<Long> readLongList() {
-        List<Long> longList = new ArrayList<>();
-        List<String> list = readLists();
-        for (String obj : list) {
-            longList.add(Long.parseLong(obj));
-        }
-        return longList;
-    }
-
     protected <T> List<T> readLists(Function<String, T> function) {
         String fileName = this.getClass().getSimpleName().toLowerCase() + ".in";
         List<T> list = new ArrayList<>();

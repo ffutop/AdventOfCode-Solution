@@ -17,7 +17,7 @@ public class Day1 extends BasicDay {
     }
 
     private int solve1() {
-        List<Integer> list = readIntegerList();
+        List<Integer> list = readLists(s -> Integer.valueOf(s));
         Set<Integer> set = new HashSet<>(list);
         for (Integer val : list) {
             if (set.contains(target - val)) {
@@ -28,7 +28,7 @@ public class Day1 extends BasicDay {
     }
 
     private int solve2() {
-        List<Integer> singleValues = readIntegerList();
+        List<Integer> singleValues = readLists(s -> Integer.valueOf(s));
         int len = singleValues.size();
         Map<Integer, Integer> doubleValueMultipleMap = new HashMap<>();
         for (int i=0;i<len;i++) {
