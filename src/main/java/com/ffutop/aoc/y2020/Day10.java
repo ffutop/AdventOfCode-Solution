@@ -3,7 +3,6 @@ package com.ffutop.aoc.y2020;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 public class Day10 extends BasicDay {
 
@@ -36,15 +35,7 @@ public class Day10 extends BasicDay {
         for (Integer val : list) {
             final long count = map.get(val);
             for (int i=1;i<=3;i++) {
-                map.compute(val + i, new BiFunction<Integer, Long, Long>() {
-                    @Override
-                    public Long apply(Integer key, Long oldValue) {
-                        if (oldValue == null) {
-                            oldValue = 0L;
-                        }
-                        return oldValue + count;
-                    }
-                });
+                map.compute(val + i, (key, oldValue) -> count + (oldValue == null ? 0L : oldValue));
             }
         }
         return map.get(outlet);
