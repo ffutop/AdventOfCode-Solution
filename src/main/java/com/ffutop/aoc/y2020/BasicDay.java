@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -47,6 +48,32 @@ public class BasicDay {
             String line ;
             while ((line = br.readLine()) != null) {
                 list.add(function.apply(line));
+            }
+        } catch (IOException iox) {
+            System.out.println("read lists failed");
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return list;
+    }
+
+    protected <T> List<T> readLists(BiFunction<String, Integer, T> function) {
+        String fileName = this.getClass().getSimpleName().toLowerCase() + ".in";
+        List<T> list = new ArrayList<>();
+        BufferedReader br = null;
+        try {
+            br = ReaderUtil.getBufferedReader(fileName);
+            String line ;
+            int lineNo = 0;
+            while ((line = br.readLine()) != null) {
+                list.add(function.apply(line, lineNo));
+                lineNo++;
             }
         } catch (IOException iox) {
             System.out.println("read lists failed");
