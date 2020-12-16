@@ -82,9 +82,6 @@ public class Day16 extends BasicDay {
                 result.retainAll(grid[i][j]);
             }
             rows[j] = result;
-            System.out.print(j + ": ");
-            rows[j].forEach(x-> System.out.print(x + " "));
-            System.out.println();
             queue.add(j);
         }
 
