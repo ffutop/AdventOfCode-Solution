@@ -63,8 +63,7 @@ public class Day18 extends BasicDay {
             for (char c : cs) {
                 if (c == ' ') {
                     continue;
-                }
-                if (OPERATES.contains(c)) {
+                } else if (OPERATES.contains(c)) {
                     stack.add(c);
                 } else if (c == ')') {
                     Long value = (Long) stack.pop();
@@ -74,10 +73,15 @@ public class Day18 extends BasicDay {
                         value = op(value1, operate, value);
                     }
                     stack.pop();
+                    while (!stack.isEmpty() && (Character) stack.peek() == '+') {
+                        Character operate = (Character) stack.pop();
+                        Long value1 = (Long) stack.pop();
+                        value = op(value1, operate, value);
+                    }
                     stack.add(value);
                 } else {
                     Long value2 = Long.valueOf(c-'0');
-                    if (!stack.isEmpty() && (Character) stack.peek() == '*') {
+                    if (!stack.isEmpty() && (Character) stack.peek() == '+') {
                         Character operate = (Character) stack.pop();
                         Long value1 = (Long) stack.pop();
                         stack.push(op(value1, operate, value2));
@@ -93,6 +97,7 @@ public class Day18 extends BasicDay {
                 value = op(value1, operate, value);
             }
             stack.add(value);
+            System.out.println(stack.peek() + " = " + line);
             result += (Long) stack.pop();
             if (!stack.isEmpty()) {
                 System.out.println(stack.pop());
@@ -104,8 +109,6 @@ public class Day18 extends BasicDay {
     private Long op(Long value1, Character operate, Long value2) {
         if (operate == '+') {
             return value1 + value2;
-        } else if (operate == '-') {
-            return value1 - value2;
         } else if (operate == '*') {
             return value1 * value2;
         } else {
