@@ -2,27 +2,27 @@ package com.ffutop.aoc.y2020;
 
 import java.util.*;
 
+/**
+ * @author fangfeng
+ * @since 2020-12-20
+ */
 public class Day20 extends BasicDay {
 
-    private static final Map<Integer, int[]> ROTATE_AND_FLIP_MAPS = new HashMap<Integer, int[]>() {{
-        put(0, new int[] {1,2,3,4});
-        put(1, new int[] {-4,1,-2,3});
-        put(2, new int[] {-3,-4,-1,-2});
-        put(3, new int[] {2,-3,4,-1});
-        put(4, new int[] {-1,4,-3,2});
-        put(5, new int[] {4,3,2,1});
-        put(6, new int[] {3,-2,1,4});
-        put(7, new int[] {-2,-1,-4,-3});
-    }};
+    private static final String[] SEA_MONSTERS = new String[] {
+        "                  # ",
+        "#    ##    ##    ###",
+        " #  #  #  #  #  #   "
+    };
 
-    private static LinkedList<Tile> tiles = new LinkedList<>();
     private static final int TILE_GRID_ROWS = 10;
     private static final int TILE_GRID_COLS = 10;
-    private static int tileCount;
 
-    private static Tile[][] tileGrid;
-    private static int tileGridRows;
-    private static int tileGridCols;
+    private static LinkedList<Tile> tiles = new LinkedList<>();
+    private static Map<Integer, Set<Integer>> neighborMap = new HashMap<>();
+    private static Map<Integer, Tile> tileMap = new HashMap<>();
+    private static Tile[][] tilesGrid;
+    private static int tilesGridRows;
+    private static int tilesGridCols;
     private static Set<Integer> used;
 
     public static void main(String[] args) {
@@ -37,76 +37,99 @@ public class Day20 extends BasicDay {
             }
             return null;
         });
+        for (Tile tile : tiles) {
+            tileMap.put(tile.id, tile);
+        }
 
-        System.out.println(day20.solve1());
+        day20.solve();
     }
 
-    private long solve1() {
-        tileCount = tiles.size();
-        tileGridRows = (int) Math.sqrt(tileCount);
-        tileGridCols = tileGridRows;
-        for (Tile topLeft : tiles) {
-            System.out.println("topLeft.id = " + topLeft.id);
-            for (int[] rotateAndFlipMap : ROTATE_AND_FLIP_MAPS.values()) {
-                int[] rotateAndFlipBorders = topLeft.getBorders(rotateAndFlipMap);
-                System.out.println(Arrays.toString(rotateAndFlipBorders));
+    private void solve() {
+        tilesGridRows = (int) Math.sqrt(tiles.size());
+        tilesGridCols = tilesGridRows;
 
-                tileGrid = new Tile[tileGridRows][tileGridCols];
-                tileGrid[0][0] = new Tile(topLeft.id, rotateAndFlipBorders);
-                used = new HashSet<>();
-                used.add(topLeft.id);
-                if (nextGrid(0, 1)) {
-                    System.out.println("YES");
-                    break;
+        for (Tile u : tiles) {
+            for (Tile v : tiles) {
+                if (u.id == v.id)   continue;
+                for (int uBorder : u.getBorders()) {
+                    for (int vBorder : v.getBorders()) {
+                        if (uBorder != vBorder) continue;
+                        neighborMap.compute(u.id, (key, oldValue) -> {
+                            if (oldValue == null)   {   oldValue = new HashSet<>(); }
+                            oldValue.add(v.id);
+                            return oldValue;
+                        });
+                    }
                 }
             }
         }
 
-        return 1L * tileGrid[0][0].id * tileGrid[0][tileGridCols-1].id * tileGrid[tileGridRows-1][0].id * tileGrid[tileGridRows-1][tileGridCols-1].id;
+        // part 1 result
+        long result = 1L;
+        for (Map.Entry<Integer, Set<Integer>> entry : neighborMap.entrySet()) {
+            if (entry.getValue().size() == 2) {
+                result *= entry.getKey();
+            }
+        }
+        System.out.println(result);
+
+        // part 2 result
+        tilesGrid = new Tile[tilesGridRows][tilesGridCols];
+        for (Tile topLeft : tiles) {
+            if (neighborMap.get(topLeft.id).size() != 2) {
+                continue;
+            }
+
+            used = new HashSet<>();
+            used.add(topLeft.id);
+            for (Tile rotateAndFlipTopLeft : topLeft.rotateAndFlip()) {
+                tilesGrid[0][0] = rotateAndFlipTopLeft;
+                nextGrid(0, 1);
+            }
+        }
+
+        Image image = new Image(tilesGrid);
+        System.out.println(image.countSeaMonster());
     }
 
     private boolean nextGrid(int row, int col) {
-        System.out.println(row + " " + col);
-        if (col == tileGridCols)    {   row=row+1;  col=0;  }
-        if (row == tileGridRows)    {   return true;    }
+        if (col == tilesGridCols)    {   row=row+1;  col=0;  }
+        if (row == tilesGridRows)    {   return true;    }
 
-        for (Tile tile : tiles) {
-            if (used.contains(tile.id)) continue;
-            Tile leftTile = col==0 ? null : tileGrid[row][col-1];
-            Tile topTile = row==0 ? null : tileGrid[row-1][col];
+        Tile leftTile = col==0 ? null : tilesGrid[row][col-1];
+        Tile topTile = row==0 ? null : tilesGrid[row-1][col];
+        int previousId = leftTile==null ? topTile.id : leftTile.id;
+        for (Integer neighborId : neighborMap.get(previousId)) {
+            if (used.contains(neighborId))  continue;
+            Tile currentTile = tileMap.get(neighborId);
 
-            used.add(tile.id);
-            for (int[] rotateAndFlipMap : ROTATE_AND_FLIP_MAPS.values()) {
-                int[] rotateAndFlipBorders = tile.getBorders(rotateAndFlipMap);
+            used.add(neighborId);
+            for (Tile rotateAndFlipTile : currentTile.rotateAndFlip()) {
+                int[] rotateAndFlipBorders = rotateAndFlipTile.getBorders();
 
                 if (!isMatch(leftTile, topTile, rotateAndFlipBorders))  continue;
-                tileGrid[row][col] = new Tile(tile.id, rotateAndFlipBorders);
+                tilesGrid[row][col] = rotateAndFlipTile;
                 if (nextGrid(row, col+1))   return true;
             }
-
-            used.remove(tile.id);
+            used.remove(neighborId);
         }
         return false;
     }
 
     private boolean isMatch(Tile leftTile, Tile topTile, int[] tileBorders) {
-        return (leftTile == null || leftTile.borders[1] == tileBorders[3])
-                && (topTile == null || topTile.borders[2] == tileBorders[0]);
+        return (leftTile == null || leftTile.getBorders()[1] == tileBorders[3])
+                && (topTile == null || topTile.getBorders()[2] == tileBorders[0]);
     }
 
     private static class Tile {
         int id;
         char[][] grid;
         int[] borders;
+        Tile[] rotateAndFlipTiles;
 
         public Tile(int id) {
             this.id = id;
             this.grid = new char[TILE_GRID_ROWS][TILE_GRID_COLS];
-        }
-
-        public Tile(int id, int[] borders) {
-            this.id = id;
-            this.borders = borders;
         }
 
         public void appendRow(int rowNo, String msg) {
@@ -116,8 +139,14 @@ public class Day20 extends BasicDay {
             }
         }
 
-        public int[] getBorders(int[] rotateAndFlip) {
+        public int[] getBorders() {
             if (borders == null) {
+                System.out.println(this.id);
+                for (int row=0;row<TILE_GRID_ROWS;row++) {
+                    System.out.println(Arrays.toString(grid[row]));
+                }
+                System.out.println();
+
                 borders = new int[8];
                 for (int col = 0; col < TILE_GRID_COLS; col++) {
                     borders[0] = (borders[0] << 1) | (grid[0][col] == '#' ? 1 : 0);
@@ -134,14 +163,112 @@ public class Day20 extends BasicDay {
                 }
             }
 
-            if (rotateAndFlip == null) {
-                rotateAndFlip = new int[] {1,2,3,4};
+            return borders;
+        }
+
+        public Tile[] rotateAndFlip() {
+            if (rotateAndFlipTiles == null) {
+                rotateAndFlipTiles = new Tile[8];
+                rotateAndFlipTiles[0] = this;
+                for (int i=1;i<4;i++) {
+                    rotateAndFlipTiles[i] = new Tile(this.id);
+                    for (int row=0;row<TILE_GRID_ROWS;row++) {
+                        for (int col=0;col<TILE_GRID_COLS;col++) {
+                            rotateAndFlipTiles[i].grid[row][col] = rotateAndFlipTiles[i-1].grid[TILE_GRID_COLS-col-1][row];
+                        }
+                    }
+                }
+                for (int i=4;i<8;i++) {
+                    rotateAndFlipTiles[i] = new Tile(this.id);
+                    for (int row=0;row<TILE_GRID_ROWS;row++) {
+                        for (int col=0;col<TILE_GRID_COLS;col++) {
+                            rotateAndFlipTiles[i].grid[row][col] = rotateAndFlipTiles[i-4].grid[TILE_GRID_ROWS-row-1][col];
+                        }
+                    }
+                }
             }
-            int[] rotateAndFlipBorders = new int[4];
-            for (int i=0;i<4;i++) {
-                rotateAndFlipBorders[i] = rotateAndFlip[i] < 0 ? borders[8+rotateAndFlip[i]] : borders[rotateAndFlip[i]-1];
+            return rotateAndFlipTiles;
+        }
+    }
+
+    private static class Image {
+        char[][] grid;
+        int rows;
+        int cols;
+
+        public Image(Tile[][] tilesGrid) {
+            rows = TILE_GRID_ROWS * tilesGridRows;
+            cols = TILE_GRID_COLS * tilesGridCols;
+            this.grid = new char[rows][cols];
+            for (int tilesRow=0;tilesRow<tilesGridRows;tilesRow++) {
+                for (int tilesCol=0;tilesCol<tilesGridCols;tilesCol++) {
+                    for (int tileRow=0;tileRow<TILE_GRID_ROWS;tileRow++) {
+                        for (int tileCol=0;tileCol<TILE_GRID_COLS;tileCol++) {
+                            System.out.println((tilesRow*TILE_GRID_ROWS + tileRow) + " " + (tilesCol*TILE_GRID_COLS + tileCol));
+                            this.grid[tilesRow*TILE_GRID_ROWS + tileRow][tilesCol*TILE_GRID_COLS + tileCol] = tilesGrid[tilesRow][tilesCol].grid[tileRow][tileCol];
+                        }
+                    }
+                }
             }
-            return rotateAndFlipBorders;
+        }
+
+        public int countSeaMonster() {
+            for (int rotateAndFlip=0;rotateAndFlip<8;rotateAndFlip++) {
+                for (int row=0;row<rows;row++) {
+                    for (int col=0;col<cols;col++) {
+                        System.out.print(grid[row][col]);
+                        if (matchSeaMonster(row, col)) {
+                            markSeaMonster(row, col);
+                        }
+                    }
+                    System.out.println();
+                }
+                System.out.println();
+
+                char[][] nextGrid = new char[rows][cols];
+                if (rotateAndFlip == 3) {
+                    for (int row=0;row<rows;row++) {
+                        for (int col=0;col<cols;col++) {
+                            nextGrid[row][col] = grid[rows-row-1][col];
+                        }
+                    }
+                } else {
+                    for (int row = 0; row < rows; row++) {
+                        for (int col = 0; col < cols; col++) {
+                            nextGrid[row][col] = grid[cols - col - 1][row];
+                        }
+                    }
+                }
+                grid = nextGrid;
+            }
+
+            int result = 0;
+            for (int row=0;row<rows;row++) {
+                for (int col=0;col<cols;col++) {
+                    result += grid[row][col] == '#' ? 1 : 0;
+                }
+            }
+            return result;
+        }
+
+        private boolean matchSeaMonster(int x, int y) {
+            for (int row=0;row<SEA_MONSTERS.length;row++) {
+                for (int col=0;col<SEA_MONSTERS[row].length();col++) {
+                    if (x+row>=rows || y+col>=cols) return false;
+                    if (SEA_MONSTERS[row].charAt(col) == '#' && grid[x+row][y+col] == '.')  return false;
+                }
+            }
+            return true;
+        }
+
+        private void markSeaMonster(int x, int y) {
+            for (int row=0;row<SEA_MONSTERS.length;row++) {
+                for (int col=0;col<SEA_MONSTERS[row].length();col++) {
+                    if (SEA_MONSTERS[row].charAt(col) == '#') {
+                        grid[x+row][y+col] = 'O';
+                    }
+                }
+            }
         }
     }
 }
