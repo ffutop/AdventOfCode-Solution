@@ -5,14 +5,14 @@ import java.util.*;
 public class Day20 extends BasicDay {
 
     private static final Map<Integer, int[]> ROTATE_AND_FLIP_MAPS = new HashMap<Integer, int[]>() {{
-        put(0, new int[] {0,1,2,3});
-        put(1, new int[] {-3,0,-1,2});
-        put(2, new int[] {-2,-3,-0,-1});
-        put(3, new int[] {1,-2,3,-0});
-        put(4, new int[] {-0,3,-2,1});
-        put(5, new int[] {3,2,1,0});
-        put(6, new int[] {2,-1,0,-3});
-        put(7, new int[] {-1,-0,-3,-2});
+        put(0, new int[] {1,2,3,4});
+        put(1, new int[] {-4,1,-2,3});
+        put(2, new int[] {-3,-4,-1,-2});
+        put(3, new int[] {2,-3,4,-1});
+        put(4, new int[] {-1,4,-3,2});
+        put(5, new int[] {4,3,2,1});
+        put(6, new int[] {3,-2,1,4});
+        put(7, new int[] {-2,-1,-4,-3});
     }};
 
     private static LinkedList<Tile> tiles = new LinkedList<>();
@@ -38,10 +38,6 @@ public class Day20 extends BasicDay {
             return null;
         });
 
-//        for (Tile tile : tiles) {
-//            System.out.println(tile.getBorders()[0] + " " + tile.getBorders()[1] + " " + tile.getBorders()[2] + " " + tile.getBorders()[3]);
-//        }
-
         System.out.println(day20.solve1());
     }
 
@@ -50,9 +46,10 @@ public class Day20 extends BasicDay {
         tileGridRows = (int) Math.sqrt(tileCount);
         tileGridCols = tileGridRows;
         for (Tile topLeft : tiles) {
+            System.out.println("topLeft.id = " + topLeft.id);
             for (int[] rotateAndFlipMap : ROTATE_AND_FLIP_MAPS.values()) {
                 int[] rotateAndFlipBorders = topLeft.getBorders(rotateAndFlipMap);
-                System.out.println(rotateAndFlipBorders[0] + " " + rotateAndFlipBorders[1] + " " + rotateAndFlipBorders[2] + " " + rotateAndFlipBorders[3]);
+                System.out.println(Arrays.toString(rotateAndFlipBorders));
 
                 tileGrid = new Tile[tileGridRows][tileGridCols];
                 tileGrid[0][0] = new Tile(topLeft.id, rotateAndFlipBorders);
@@ -65,10 +62,11 @@ public class Day20 extends BasicDay {
             }
         }
 
-        return tileGrid[0][0].id * tileGrid[0][tileGridCols-1].id * tileGrid[tileGridRows-1][0].id * tileGrid[tileGridRows-1][tileGridCols-1].id;
+        return 1L * tileGrid[0][0].id * tileGrid[0][tileGridCols-1].id * tileGrid[tileGridRows-1][0].id * tileGrid[tileGridRows-1][tileGridCols-1].id;
     }
 
     private boolean nextGrid(int row, int col) {
+        System.out.println(row + " " + col);
         if (col == tileGridCols)    {   row=row+1;  col=0;  }
         if (row == tileGridRows)    {   return true;    }
 
@@ -136,13 +134,12 @@ public class Day20 extends BasicDay {
                 }
             }
 
-
             if (rotateAndFlip == null) {
-                rotateAndFlip = new int[] {0,1,2,3};
+                rotateAndFlip = new int[] {1,2,3,4};
             }
             int[] rotateAndFlipBorders = new int[4];
             for (int i=0;i<4;i++) {
-                rotateAndFlipBorders[0] = rotateAndFlip[i] < 0 ? borders[7+rotateAndFlip[i]] : borders[rotateAndFlip[i]];
+                rotateAndFlipBorders[i] = rotateAndFlip[i] < 0 ? borders[8+rotateAndFlip[i]] : borders[rotateAndFlip[i]-1];
             }
             return rotateAndFlipBorders;
         }

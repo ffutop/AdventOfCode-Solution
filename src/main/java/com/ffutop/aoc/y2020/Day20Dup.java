@@ -8,75 +8,37 @@ import java.util.*;
  */
 public class Day20Dup extends BasicDay {
 
-    private List<Tile> tileList;
+    private static final int TILE_GRID_ROWS = 10;
+    private static final int TILE_GRID_COLS = 10;
+
+    private static LinkedList<Tile> tiles = new LinkedList<>();
 
     public static void main(String[] args) {
         Day20Dup day20 = new Day20Dup();
-        List<Tile> tileList = new ArrayList<>();
         day20.readLists((line, lineNo) -> {
-            if (lineNo.intValue() % 12 == 0) {
-                Tile tile = new Tile();
-                tile.image = new char[10][10];
-                tile.id = Integer.parseInt(line.substring(5, 9));
-                tileList.add(tile);
-            } else if (lineNo.intValue() % 12 == 11) {
-
+            if ((lineNo.intValue()) % 12 == 0) {
+                tiles.add(new Tile(Integer.parseInt(line.substring(5, 9))));
             } else {
-                Tile tile = tileList.get(tileList.size()-1);
-                for (int i=0;i<10;i++) {
-                    tile.image[lineNo%12-1][i] = line.charAt(i);
-                }
+                Tile tile = tiles.getLast();
+                int rowNo = lineNo.intValue() % 12 - 1;
+                tile.appendRow(rowNo, line);
             }
             return null;
         });
-        day20.tileList = tileList;
 
         System.out.println(day20.solve1());
     }
 
     private Long solve1() {
-        System.out.println(tileList.size());
         Map<Integer, Integer> map = new HashMap<>();
-        int row = (int) Math.sqrt(tileList.size());
+        int row = (int) Math.sqrt(tiles.size());
         int col = row;
-        for (Tile topLeft : tileList) {
-            Tile[][] tileGrid = new Tile[row][col];
-            Set<Tile> used = new HashSet<>();
 
-            tileGrid[0][0] = topLeft;
-            getNextMatch(tileGrid, used, row, col, 0, 1);
-
-            for (int i=0;i<row;i++) {
-                for (int j=0;j<col;j++) {
-                    if (i+j == 0) {
-                        tileGrid[i][j] = topLeft;
-                    } else {
-                        for (Tile tile : tileList) {
-                            if (used.contains(tile)) continue;
-
-                        }
-                    }
-
-                    used.add(tileGrid[i][j]);
-                }
-            }
-        }
-
-        for (Tile tile : tileList) {
-            int[] borders = tile.borderToInts();
+        for (Tile tile : tiles) {
+            int[] borders = tile.getBorders();
             for (int border : borders) {
                 map.compute(border, (key, oldValue) -> {
-                    if (oldValue == null) {
-                        oldValue = 0;
-                    }
-                    oldValue++;
-                    return oldValue;
-                });
-                map.compute(1024-border, (key, oldValue) -> {
-                    if (oldValue == null) {
-                        oldValue = 0;
-                    }
-                    oldValue++;
+                    oldValue = oldValue == null ? 1 : oldValue+1;
                     return oldValue;
                 });
             }
@@ -92,73 +54,93 @@ public class Day20Dup extends BasicDay {
             }
         }
 
+        Map<Integer, Set<Integer>> neighborMap = new HashMap<>();
+        for (Tile u : tiles) {
+            for (Tile v : tiles) {
+                if (u.id == v.id)   continue;
+                for (int uBorder : u.getBorders()) {
+                    for (int vBorder : v.getBorders()) {
+                        if (uBorder == vBorder) {
+                            neighborMap.compute(u.id, (key, oldValue) -> {
+                                if (oldValue == null)   {   oldValue = new HashSet<>(); }
+                                oldValue.add(v.id);
+                                return oldValue;
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
         long result = 1L;
-        int[] cc = new int[5];
-        for (Tile tile : tileList) {
-            int count = 0;
-            for (int border : tile.borderToInts()) {
-                count += map.get(border) == 1 ? 1 : 0;
-            }
-            cc[count]++;
-            if (count == 2) {
-                System.out.println("YES " + tile.id);
-                result *= tile.id;
-                for (int border : tile.borderToInts()) {
-                    System.out.print(map.get(border) + " ");
-                }
-                System.out.println();
+        for (Map.Entry<Integer, Set<Integer>> entry : neighborMap.entrySet()) {
+            if (entry.getValue().size() == 2) {
+                result *= entry.getKey();
             }
         }
-        System.out.println(cc[1] + " " + cc[2] + " " + cc[3] + " " + cc[4]);
+
+//        long result = 1L;
+//        int[] cc = new int[5];
+//        for (Tile tile : tiles) {
+//            int count = 0;
+//            for (int border : tile.borderToInts()) {
+//                count += map.get(border) == 1 ? 1 : 0;
+//            }
+//            cc[count]++;
+//            if (count == 2) {
+//                System.out.println("YES " + tile.id);
+//                result *= tile.id;
+//                for (int border : tile.borderToInts()) {
+//                    System.out.print(map.get(border) + " ");
+//                }
+//                System.out.println();
+//            }
+//        }
+//        System.out.println(cc[1] + " " + cc[2] + " " + cc[3] + " " + cc[4]);
+//        return result;
         return result;
-    }
-
-    private void getNextMatch(Tile[][] tileGrid, Set<Tile> used, int row, int col, int x, int y) {
-        if (y == col) { x++;    y=0; }
-        if (x == row) { return; }
-
-        for (Tile tile : tileList) {
-            if (used.contains(tile))    continue;
-            int[] borders = tile.borderToInts();
-            if (x==0) {
-                int leftBorder = tileGrid[x][y-1].borderToInts()[1];
-                for (int border : borders) {
-                }
-            } else if (y==0) {
-
-            } else {
-
-            }
-
-
-        }
-
     }
 
     private static class Tile {
         int id;
-        char[][] image;
+        char[][] grid;
         int[] borders;
 
-        private int[] borderToInts() {
-            if (borders != null) {
-                return borders;
+        public Tile(int id) {
+            this.id = id;
+            this.grid = new char[TILE_GRID_ROWS][TILE_GRID_COLS];
+        }
+
+        public Tile(int id, int[] borders) {
+            this.id = id;
+            this.borders = borders;
+        }
+
+        public void appendRow(int rowNo, String msg) {
+            if ("".equals(msg.trim()))  return;
+            for (int colNo=0;colNo<TILE_GRID_COLS;colNo++) {
+                grid[rowNo][colNo] = msg.charAt(colNo);
             }
-            int row = image.length;
-            int col = image[0].length;
-            int[] ints = new int[4];
-            char[] row0 = image[0];
-            char[] rowN = image[row-1];
-            for (int j=0;j<col;j++) {
-                ints[0] = (ints[0] << 1) | (row0[j] == '#' ? 1 : 0);
-                ints[2] = (ints[2] << 1) | (rowN[col-j-1] == '#' ? 1 : 0);
+        }
+
+        public int[] getBorders() {
+            if (borders == null) {
+                borders = new int[8];
+                for (int col = 0; col < TILE_GRID_COLS; col++) {
+                    borders[0] = (borders[0] << 1) | (grid[0][col] == '#' ? 1 : 0);
+                    borders[7] = (borders[7] << 1) | (grid[0][TILE_GRID_COLS - col - 1] == '#' ? 1 : 0);
+                    borders[2] = (borders[2] << 1) | (grid[TILE_GRID_ROWS - 1][col] == '#' ? 1 : 0);
+                    borders[5] = (borders[5] << 1) | (grid[TILE_GRID_ROWS - 1][TILE_GRID_COLS - col - 1] == '#' ? 1 : 0);
+                }
+
+                for (int row = 0; row < TILE_GRID_ROWS; row++) {
+                    borders[1] = (borders[1] << 1) | (grid[row][TILE_GRID_COLS - 1] == '#' ? 1 : 0);
+                    borders[6] = (borders[6] << 1) | (grid[TILE_GRID_ROWS - row - 1][TILE_GRID_COLS - 1] == '#' ? 1 : 0);
+                    borders[3] = (borders[3] << 1) | (grid[row][0] == '#' ? 1 : 0);
+                    borders[4] = (borders[4] << 1) | (grid[TILE_GRID_ROWS - row - 1][0] == '#' ? 1 : 0);
+                }
             }
 
-            for (int i=0;i<row;i++) {
-                ints[3] = (ints[3] << 1) | (image[row-i-1][0] == '#' ? 1 : 0);
-                ints[1] = (ints[1] << 1) | (image[i][col-1] == '#' ? 1 : 0);
-            }
-            borders = ints;
             return borders;
         }
     }
