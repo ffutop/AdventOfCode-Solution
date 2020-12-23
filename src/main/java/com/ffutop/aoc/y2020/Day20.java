@@ -75,6 +75,7 @@ public class Day20 extends BasicDay {
 
         // part 2 result
         tilesGrid = new Tile[tilesGridRows][tilesGridCols];
+        boolean matched = false;
         for (Tile topLeft : tiles) {
             if (neighborMap.get(topLeft.id).size() != 2) {
                 continue;
@@ -84,7 +85,13 @@ public class Day20 extends BasicDay {
             used.add(topLeft.id);
             for (Tile rotateAndFlipTopLeft : topLeft.rotateAndFlip()) {
                 tilesGrid[0][0] = rotateAndFlipTopLeft;
-                nextGrid(0, 1);
+                if (nextGrid(0, 1)) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                break;
             }
         }
 
@@ -141,12 +148,6 @@ public class Day20 extends BasicDay {
 
         public int[] getBorders() {
             if (borders == null) {
-                System.out.println(this.id);
-                for (int row=0;row<TILE_GRID_ROWS;row++) {
-                    System.out.println(Arrays.toString(grid[row]));
-                }
-                System.out.println();
-
                 borders = new int[8];
                 for (int col = 0; col < TILE_GRID_COLS; col++) {
                     borders[0] = (borders[0] << 1) | (grid[0][col] == '#' ? 1 : 0);
@@ -197,15 +198,14 @@ public class Day20 extends BasicDay {
         int cols;
 
         public Image(Tile[][] tilesGrid) {
-            rows = TILE_GRID_ROWS * tilesGridRows;
-            cols = TILE_GRID_COLS * tilesGridCols;
+            rows = (TILE_GRID_ROWS-2) * tilesGridRows;
+            cols = (TILE_GRID_COLS-2) * tilesGridCols;
             this.grid = new char[rows][cols];
             for (int tilesRow=0;tilesRow<tilesGridRows;tilesRow++) {
                 for (int tilesCol=0;tilesCol<tilesGridCols;tilesCol++) {
-                    for (int tileRow=0;tileRow<TILE_GRID_ROWS;tileRow++) {
-                        for (int tileCol=0;tileCol<TILE_GRID_COLS;tileCol++) {
-                            System.out.println((tilesRow*TILE_GRID_ROWS + tileRow) + " " + (tilesCol*TILE_GRID_COLS + tileCol));
-                            this.grid[tilesRow*TILE_GRID_ROWS + tileRow][tilesCol*TILE_GRID_COLS + tileCol] = tilesGrid[tilesRow][tilesCol].grid[tileRow][tileCol];
+                    for (int tileRow=0;tileRow<TILE_GRID_ROWS-2;tileRow++) {
+                        for (int tileCol=0;tileCol<TILE_GRID_COLS-2;tileCol++) {
+                            this.grid[tilesRow*(TILE_GRID_ROWS-2) + tileRow][tilesCol*(TILE_GRID_COLS-2) + tileCol] = tilesGrid[tilesRow][tilesCol].grid[tileRow+1][tileCol+1];
                         }
                     }
                 }
@@ -216,14 +216,11 @@ public class Day20 extends BasicDay {
             for (int rotateAndFlip=0;rotateAndFlip<8;rotateAndFlip++) {
                 for (int row=0;row<rows;row++) {
                     for (int col=0;col<cols;col++) {
-                        System.out.print(grid[row][col]);
                         if (matchSeaMonster(row, col)) {
                             markSeaMonster(row, col);
                         }
                     }
-                    System.out.println();
                 }
-                System.out.println();
 
                 char[][] nextGrid = new char[rows][cols];
                 if (rotateAndFlip == 3) {
@@ -235,7 +232,7 @@ public class Day20 extends BasicDay {
                 } else {
                     for (int row = 0; row < rows; row++) {
                         for (int col = 0; col < cols; col++) {
-                            nextGrid[row][col] = grid[cols - col - 1][row];
+                            nextGrid[row][col] = grid[cols-col-1][row];
                         }
                     }
                 }
