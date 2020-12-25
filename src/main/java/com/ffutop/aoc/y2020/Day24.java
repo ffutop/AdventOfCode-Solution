@@ -17,14 +17,16 @@ public class Day24 extends BasicDay {
         put("ne", new int[] {-1,1});
     }};
 
+    private static final Integer ROUNDS = 100;
+
     public static void main(String[] args) {
         Day24 day24 = new Day24();
-        System.out.println(day24.solve());
+        day24.solve();
     }
 
-    private int solve() {
+    private void solve() {
         List<String> lineList = readLists();
-        HashMap<Point, Integer> pointMap = new HashMap<>();
+        Map<Point, Integer> pointMap = new HashMap<>();
         for (String line : lineList) {
             Point point = new Point();
             for (int i=0;i<line.length();i++) {
@@ -44,15 +46,68 @@ public class Day24 extends BasicDay {
                 return oldValue;
             });
         }
+
+        int leftBound = 0;
+        int rightBound = 0;
+        int topBound = 0;
+        int bottomBound = 0;
+
         int counter = 0;
         for (Map.Entry<Point, Integer> entry : pointMap.entrySet()) {
             counter += entry.getValue() % 2;
+            leftBound = Math.min(leftBound, entry.getKey().x-2);
+            rightBound = Math.max(rightBound, entry.getKey().x+2);
+            topBound = Math.min(topBound, entry.getKey().y-1);
+            bottomBound = Math.max(bottomBound, entry.getKey().y+1);
         }
-        return counter;
+        System.out.println(counter);
+
+        for (int round=0;round<ROUNDS;round++) {
+            Map<Point, Integer> nextMap = new HashMap<>();
+            for (int x=leftBound;x<=rightBound;x++) {
+                for (int y=topBound;y<=bottomBound;y++) {
+                    Point current = new Point(x, y);
+                    int countBlack = 0;
+                    for (int[] direction : DIRECTION_MAP.values()) {
+                        Point neighbor = new Point();
+                        neighbor.x = x + direction[0];
+                        neighbor.y = y + direction[1];
+                        countBlack += pointMap.getOrDefault(neighbor, 0) % 2 == 1 ? 1 : 0;
+                    }
+                    if (pointMap.getOrDefault(current, 0) % 2 == 0) {
+                        nextMap.put(current, countBlack == 2 ? 1 : 0);
+                    } else {
+                        nextMap.put(current, (countBlack == 0 || countBlack > 2) ? 0 : 1);
+                    }
+                }
+            }
+
+            leftBound-=2;
+            rightBound+=2;
+            topBound--;
+            bottomBound++;
+            pointMap = nextMap;
+        }
+
+        counter = 0;
+        for (Integer blackOrWhite : pointMap.values()) {
+            counter += blackOrWhite % 2;
+        }
+        System.out.println(counter);
+
     }
+
 
     private class Point {
         int x, y;
+
+        public Point() {
+        }
+
+        public Point(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
 
         @Override
         public boolean equals(Object o) {
