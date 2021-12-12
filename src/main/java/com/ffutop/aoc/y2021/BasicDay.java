@@ -22,6 +22,19 @@ public class BasicDay {
         return new BufferedReader(new InputStreamReader(new FileInputStream(filePath)));
     }
 
+    protected char[][] readGrid() {
+        List<String> list = readLists();
+        int rows = list.size();
+        int cols = list.get(0).length();
+        char[][] grid = new char[rows][cols];
+        for (int row=0;row<rows;row++) {
+            for (int col=0;col<cols;col++) {
+                grid[row][col] = list.get(row).charAt(col);
+            }
+        }
+        return grid;
+    }
+
     protected List<String> readLists() {
         String fileName = this.getClass().getSimpleName().toLowerCase() + ".in";
         List<String> list = new ArrayList<>();
