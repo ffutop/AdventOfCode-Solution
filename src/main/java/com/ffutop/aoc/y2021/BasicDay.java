@@ -35,6 +35,19 @@ public class BasicDay {
         return grid;
     }
 
+    protected int[][] readIntGrid() {
+        List<String> list = readLists();
+        int rows = list.size();
+        int cols = list.get(0).length();
+        int[][] grid = new int[rows][cols];
+        for (int row=0;row<rows;row++) {
+            for (int col=0;col<cols;col++) {
+                grid[row][col] = list.get(row).charAt(col) - '0';
+            }
+        }
+        return grid;
+    }
+
     protected List<String> readLists() {
         String fileName = this.getClass().getSimpleName().toLowerCase() + ".in";
         List<String> list = new ArrayList<>();
